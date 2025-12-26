@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>2D Gallery with Depth Effect</title>
+    <link rel="icon" type="image/svg+xml" href="favicon.svg">
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/three.js/r134/three.min.js"></script>
+    <style>
+        /* Remove margins and make the canvas fill the screen */
+        body {
+            margin: 0;
+            overflow: hidden;
+            background-color: #000;
+        }
+
+        /* Tooltip style for displaying scientific name */
+        .tooltip {
+            position: absolute;
+            background-color: rgba(0, 0, 0, 0.8);
+            color: #fff;
+            padding: 5px 10px;
+            border-radius: 5px;
+            pointer-events: none;
+            font-size: 14px;
+            display: none;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="tooltip" class="tooltip"></div>
+    <script>
+        // Basic Three.js setup
+        const scene = new THREE.Scene(); // Create the 3D scene
+        const camera = new THREE.PerspectiveCamera(
+            75,
+            window.innerWidth / window.innerHeight,
+            0.1,
+            1000
+        ); // Set up the perspective camera
+
+        const renderer = new THREE.WebGLRenderer({
+            antialias: true
+        }); // Enable anti-aliasing for smoother edges
+        renderer.setSize(window.innerWidth, window.innerHeight); // Set renderer size to match the viewport
+        document.body.appendChild(renderer.domElement); // Add the renderer to the DOM
+
+        const raycaster = new THREE.Raycaster(); // Raycaster for mouse interaction
+        const mouse = new THREE.Vector2(); // To store mouse position
+
+        const tooltip = document.getElementById('tooltip');
+
+        // Array to store image planes and their metadata
+        const planes = [];
+
+        let isDragging = false; // To track mouse dragging
+        let previousMousePosition = {
+            x: 0,
+            y: 0
+        };
+
+        // Function to load images from the server
+        async function loadImages() {
+            try {
+                const response = await fetch('db.json');
+                const result = await response.json(); // Parse the response as JSON
+
+                const loader = new THREE.TextureLoader(); // Loader for image textures
+
+                result.data.forEach((img) => {
+                    const texture = loader.load("images/" + img.reference_picture_link, (texture) => {
+                        const aspectRatio = texture.image.width / texture.image.height; // Calculate aspect ratio
+                        const randomScale = Math.random() * 4 + 2; // Generate random scale factor
+
+                        const geometry = new THREE.PlaneGeometry(2 * aspectRatio * randomScale, 2 * randomScale); // Apply random scale
+                        const material = new THREE.MeshBasicMaterial({map: texture, transparent: true});
+                        const plane = new THREE.Mesh(geometry, material);
+
+                        // Randomly position the plane in 2D space with slight depth
+                        plane.position.set(
+                            (Math.random() - 0.5) * 100, // X position
+                            (Math.random() - 0.5) * 60, // Y position
+                            (Math.random() - 0.5) * 5 // Z position for slight depth
+                        );
+
+                        // Attach metadata to the plane
+                        plane.userData = {
+                            scientificName: img.scientific_name,
+                        };
+
+                        planes.push(plane); // Add plane to the array
+                        scene.add(plane); // Add the plane to the scene
+                    });
+                });
+            } catch (error) {
+                console.error('Error loading images:', error); // Log any errors
+            }
+        }
+
+        // Configure the camera position
+        camera.position.z = 50;
+
+        // Mouse move handler for dragging
+        function onMouseMove(event) {
+            if (isDragging) {
+                const deltaMove = {
+                    x: event.clientX - previousMousePosition.x,
+                    y: event.clientY - previousMousePosition.y,
+                };
+
+                planes.forEach(plane => {
+                    plane.position.x += deltaMove.x * -0.03;
+                    plane.position.y += deltaMove.y * 0.03;
+                });
+
+                previousMousePosition = {
+                    x: event.clientX,
+                    y: event.clientY,
+                };
+            }
+
+            // Update mouse position for raycasting
+            mouse.x = (event.clientX / window.innerWidth) * 2 - 1;
+            mouse.y = -(event.clientY / window.innerHeight) * 2 + 1;
+
+            // Perform raycasting
+            raycaster.setFromCamera(mouse, camera);
+            const intersects = raycaster.intersectObjects(planes);
+
+            if (intersects.length > 0) {
+                const intersected = intersects[0].object; // Get the first intersected object
+                tooltip.style.display = 'block';
+                tooltip.style.left = `${event.clientX + 10}px`;
+                tooltip.style.top = `${event.clientY + 10}px`;
+                tooltip.textContent = intersected.userData.scientificName; // Show scientific name
+            } else {
+                tooltip.style.display = 'none';
+            }
+        }
+
+        // Mouse down handler
+        function onMouseDown(event) {
+            isDragging = true;
+            previousMousePosition = {
+                x: event.clientX,
+                y: event.clientY,
+            };
+        }
+
+        // Mouse up handler
+        function onMouseUp() {
+            isDragging = false;
+        }
+
+        // Mouse wheel handler for zoom
+        function onMouseWheel(event) {
+            camera.position.z += event.deltaY * 0.05;
+            camera.position.z = Math.max(10, Math.min(100, camera.position.z)); // Clamp zoom level
+        }
+
+        // Adjust the viewport size when the window is resized
+        window.addEventListener('resize', () => {
+            camera.aspect = window.innerWidth / window.innerHeight; // Update camera aspect ratio
+            camera.updateProjectionMatrix(); // Apply the changes to the camera
+            renderer.setSize(window.innerWidth, window.innerHeight); // Resize the renderer
+        });
+
+        // Add event listeners for mouse interactions
+        window.addEventListener('mousemove', onMouseMove);
+        window.addEventListener('mousedown', onMouseDown);
+        window.addEventListener('mouseup', onMouseUp);
+        window.addEventListener('wheel', onMouseWheel);
+
+        // Initialize the application
+        loadImages(); // Load images from the server
+        renderer.setAnimationLoop(() => renderer.render(scene, camera)); // Start the render loop
+    </script>
+</body>
+
+</html>

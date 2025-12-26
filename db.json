@@ -1,0 +1,38 @@
+{
+    "data": [
+        {
+            "id": "1",
+            "reference_picture_link": "Setaria viridis.png",
+            "popular_name_english": "Green Foxtail",
+            "popular_name_japanese": "エノコログサ",
+            "scientific_name": "Setaria viridis",
+            "group": "Angiospermas",
+            "time": "Annual",
+            "peak_season": "Autumn",
+            "season_fruit": "Autumn",
+            "edible_fruit": "1",
+            "normally_eaten": "0",
+            "origin": "Japan and other temperate regions of the world.",
+            "type_of_garden": "Weed",
+            "cultural_integration": "Its shape is very unique. It has become an icon of late summer and fall. It is also called 「狗（犬）の尾の草」, translated as cat\/dog tail because of its appearance. It can be used to play with cats. It is also widely known as ネコジャラシ（猫じゃらし）.",
+            "places": "Many areas of the city. It is a plant that grows unruly on asphalt, green areas and gardens that are not regularly pruned."
+        },
+        {
+            "id": "2",
+            "reference_picture_link": "Ipomoea nil.png",
+            "popular_name_english": "Japanese Morning Glory",
+            "popular_name_japanese": "アサガオ",
+            "scientific_name": "Ipomoea nil",
+            "group": "Angiospermas",
+            "time": "Annual",
+            "peak_season": "Summer",
+            "season_fruit": "Autumn",
+            "edible_fruit": "0",
+            "normally_eaten": "0",
+            "origin": "Central and South America",
+            "type_of_garden": "Weed, Pot Garden, Climbing vine",
+            "cultural_integration": "Its seeds are used in making medicines for constipation (a very strong one). It was brought to Japan by China and it become very popular as an ornamental plant, being highly bred and genetically modified. It's an image of summer.",
+            "places": "Gardens, Weed"
+        }
+    ]
+}
